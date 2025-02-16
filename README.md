@@ -7,7 +7,7 @@ Fin Track is a financial tracking application that helps users stay on top of th
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/fin-track.git
+git clone https://github.com/mannpatel0/fin-track.git
 cd fin-track
 ```
 
