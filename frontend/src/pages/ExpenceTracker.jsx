@@ -4,6 +4,7 @@ import { usePlaid } from '../PlaidProvider';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { DollarSign, ChevronLeft } from 'lucide-react';
 
+
 const ExpenseTracker = () => {
   const navigate = useNavigate();
   const { 

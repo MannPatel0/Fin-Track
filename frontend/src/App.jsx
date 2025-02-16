@@ -92,19 +92,6 @@ const DashboardContent = () => {
   const { accounts, transactions, loading } = usePlaid();  // Use the Plaid context
   const [reminders, setReminders] = useState([]);
 
-  // useEffect(() => {
-  //   const fetchReminders = async () => {
-  //     const { data, error } = await supabase
-  //       .from('reminders')
-  //       .select('*')
-  //       .order('due_date', { ascending: true });
-      
-  //     if (data) setReminders(data);
-  //   };
-
-  //   fetchReminders();
-  // }, []);
-
   // Process Plaid data for charts
   const processChartData = () => {
     if (!transactions?.length) return [];
@@ -308,7 +295,7 @@ const DashboardLayout = ({ children }) => {
             {/* Logo and Brand */}
             <div className="flex items-center">
               <DollarSign className="h-8 w-8 text-green-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900"></span>
+              <span className="ml-2 text-xl font-bold text-gray-900">Fin Track</span>
             </div>
             
             {/* User Info and Logout */}

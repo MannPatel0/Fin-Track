@@ -1,221 +1,83 @@
 // QuizPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, DollarSign, BookOpen, Award, Check, X } from 'lucide-react';
+import { ChevronLeft, BookOpen, Award } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { initializeQuizDatabase } from '../quizInsert';
 
 const QuizPage = () => {
   const navigate = useNavigate();
+  const [quizzes, setQuizzes] = useState([]);
   const [currentQuiz, setCurrentQuiz] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [score, setScore] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [initializationStatus, setInitializationStatus] = useState('');
 
-  // Sample quiz data - Replace with Supabase data
-  const quizzes = [
-    {
-      id: 1,
-      title: "Banking & Finance Essentials",
-      description: "Understand the key concepts of personal finance and banking.",
-      questions: [
-        {
-          question: "What is compound interest?",
-          options: [
-            "Interest earned on the initial deposit only",
-            "Interest earned on both the initial deposit and previously earned interest",
-            "A fee charged by banks for loans",
-            "A one-time interest payment on savings"
-          ],
-          correctAnswer: 1,
-          explanation: "Compound interest is calculated on both the principal amount and accumulated interest over time."
-        },
-        {
-          question: "Which of the following negatively impacts your credit score?",
-          options: [
-            "Paying credit card bills on time",
-            "Having multiple credit cards",
-            "Missing loan payments",
-            "Checking your credit score"
-          ],
-          correctAnswer: 2,
-          explanation: "Missing loan or credit payments lowers your credit score as it reflects poor financial responsibility."
-        },
-        {
-          question: "What is the primary purpose of a credit score?",
-          options: [
-            "To determine your annual tax rate",
-            "To assess your trustworthiness as a borrower",
-            "To calculate your net worth",
-            "To set your bank account interest rate"
-          ],
-          correctAnswer: 1,
-          explanation: "A credit score helps lenders assess your creditworthiness before approving loans or credit cards."
-        },
-        {
-          question: "Which financial tool helps you save money on unnecessary expenses?",
-          options: [
-            "A budgeting app",
-            "A credit card",
-            "A payday loan",
-            "A lottery ticket"
-          ],
-          correctAnswer: 0,
-          explanation: "Budgeting apps help track expenses and reduce unnecessary spending."
-        },
-        {
-          question: "What is an overdraft fee?",
-          options: [
-            "A fee for depositing money in your bank",
-            "A penalty for withdrawing more money than you have in your account",
-            "A charge for opening a new bank account",
-            "A bonus for using your debit card frequently"
-          ],
-          correctAnswer: 1,
-          explanation: "An overdraft fee is charged when you spend more than what is available in your account."
-        },
-        {
-          question: "What does APR stand for?",
-          options: [
-            "Annual Percentage Rate",
-            "Average Payment Ratio",
-            "Automated Payment Record",
-            "Account Processing Report"
-          ],
-          correctAnswer: 0,
-          explanation: "APR (Annual Percentage Rate) represents the cost of borrowing, including interest and fees."
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: "Insurance & Healthcare Knowledge",
-      description: "Learn about insurance and healthcare essentials.",
-      questions: [
-        {
-          question: "Which type of insurance helps cover the cost of medical expenses?",
-          options: [
-            "Home insurance",
-            "Health insurance",
-            "Auto insurance",
-            "Travel insurance"
-          ],
-          correctAnswer: 1,
-          explanation: "Health insurance covers medical expenses, including doctor visits, hospital stays, and medications."
-        },
-        {
-          question: "What is a deductible in an insurance policy?",
-          options: [
-            "A discount offered for early payments",
-            "The amount you pay out-of-pocket before insurance kicks in",
-            "The total coverage amount of an insurance policy",
-            "The fine print in an insurance contract"
-          ],
-          correctAnswer: 1,
-          explanation: "A deductible is the amount you must pay before your insurance starts covering expenses."
-        },
-        {
-          question: "What does ‘premium’ mean in an insurance policy?",
-          options: [
-            "The total amount covered by the policy",
-            "The amount you pay for insurance coverage, usually monthly or yearly",
-            "A special discount given to policyholders",
-            "A type of investment plan"
-          ],
-          correctAnswer: 1,
-          explanation: "A premium is the regular payment you make to keep your insurance policy active."
-        },
-        {
-          question: "Which of the following is NOT typically covered by standard health insurance?",
-          options: [
-            "Doctor visits",
-            "Prescription medication",
-            "Cosmetic surgery",
-            "Emergency room visits"
-          ],
-          correctAnswer: 2,
-          explanation: "Cosmetic surgery is usually not covered unless it is medically necessary."
-        },
-        {
-          question: "What does life insurance primarily provide?",
-          options: [
-            "Coverage for medical expenses",
-            "Financial support for dependents after the policyholder’s death",
-            "Investment opportunities",
-            "Legal protection against lawsuits"
-          ],
-          correctAnswer: 1,
-          explanation: "Life insurance provides financial security to the policyholder’s beneficiaries in the event of death."
-        }
-      ]
-    },
-    {
-      id: 3,
-      title: "Food Safety & Consumer Awareness",
-      description: "Stay informed about food safety and smart consumer choices.",
-      questions: [
-        {
-          question: "Which of the following should you NOT do to prevent food poisoning?",
-          options: [
-            "Wash your hands before preparing food",
-            "Leave perishable food at room temperature for hours",
-            "Store raw meat separately from cooked food",
-            "Cook meat to the proper internal temperature"
-          ],
-          correctAnswer: 1,
-          explanation: "Leaving perishable food at room temperature can lead to bacterial growth and foodborne illnesses."
-        },
-        {
-          question: "What does the expiration date on food packaging indicate?",
-          options: [
-            "The last day the food should be sold",
-            "The date after which the food is unsafe to eat",
-            "The best quality before a certain date, but it may still be safe after",
-            "A suggestion for when to buy new food"
-          ],
-          correctAnswer: 2,
-          explanation: "Expiration dates often indicate peak freshness, but many foods are still safe to consume after this date."
-        },
-        {
-          question: "Which of the following is the safest way to thaw frozen food?",
-          options: [
-            "Leaving it on the kitchen counter",
-            "Placing it in the refrigerator overnight",
-            "Soaking it in hot water",
-            "Leaving it under direct sunlight"
-          ],
-          correctAnswer: 1,
-          explanation: "Refrigerator thawing is the safest method as it prevents bacterial growth."
-        },
-        {
-          question: "What temperature should poultry be cooked to in order to ensure food safety?",
-          options: [
-            "120°F (49°C)",
-            "145°F (63°C)",
-            "165°F (74°C)",
-            "200°F (93°C)"
-          ],
-          correctAnswer: 2,
-          explanation: "Poultry should be cooked to at least 165°F (74°C) to kill harmful bacteria."
-        },
-        {
-          question: "Which of these common kitchen habits increases the risk of cross-contamination?",
-          options: [
-            "Using separate cutting boards for meat and vegetables",
-            "Washing hands after handling raw food",
-            "Using the same knife for raw chicken and fresh vegetables without washing it",
-            "Refrigerating leftovers within two hours"
-          ],
-          correctAnswer: 2,
-          explanation: "Using the same knife for raw meat and vegetables without washing it can transfer harmful bacteria."
-        }
-      ]
+  useEffect(() => {
+    initializeAndFetchQuizzes();
+  }, []);
+
+  const initializeAndFetchQuizzes = async () => {
+    try {
+      setLoading(true);
+      setInitializationStatus('Initializing quiz database...');
+      
+      const initResult = await initializeQuizDatabase();
+      if (!initResult.success) {
+        throw new Error('Failed to initialize quiz database');
+      }
+      
+      setInitializationStatus('Fetching quizzes...');
+      await fetchQuizzes();
+      
+      setInitializationStatus('');
+      setLoading(false);
+    } catch (error) {
+      console.error('Error initializing quizzes:', error);
+      setInitializationStatus('Error loading quizzes. Please try again.');
+      setLoading(false);
     }
-  ];  
+  };
 
-  const handleStartQuiz = () => {
-    setCurrentQuiz(quizzes[0]);
+  const fetchQuizzes = async () => {
+    try {
+      const { data: quizData, error } = await supabase
+        .from('quiz_questions')
+        .select('*')
+        .order('id');
+
+      if (error) throw error;
+
+      const groupedQuizzes = quizData.reduce((acc, question) => {
+        if (!acc[question.category]) {
+          acc[question.category] = {
+            title: question.category,
+            description: `Test your knowledge about ${question.category}`,
+            questions: []
+          };
+        }
+        acc[question.category].questions.push({
+          question: question.question,
+          options: question.options,
+          correctAnswer: question.correct_answer,
+          explanation: question.explanation
+        });
+        return acc;
+      }, {});
+
+      setQuizzes(Object.values(groupedQuizzes));
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      throw error;
+    }
+  };
+
+  const handleStartQuiz = (quiz) => {
+    setCurrentQuiz(quiz);
     setQuizStarted(true);
     setCurrentQuestionIndex(0);
     setScore(0);
@@ -226,20 +88,45 @@ const QuizPage = () => {
     setSelectedAnswer(answerIndex);
   };
 
-  const handleNextQuestion = () => {
-    // Calculate score
+  const handleNextQuestion = async () => {
     if (selectedAnswer === currentQuiz.questions[currentQuestionIndex].correctAnswer) {
       setScore(score + 1);
     }
 
-    // Move to next question or show results
     if (currentQuestionIndex + 1 < currentQuiz.questions.length) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedAnswer(null);
     } else {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('quiz_results').insert({
+            user_id: user.id,
+            quiz_category: currentQuiz.title,
+            score: score + (selectedAnswer === currentQuiz.questions[currentQuestionIndex].correctAnswer ? 1 : 0),
+            total_questions: currentQuiz.questions.length,
+            completed_at: new Date().toISOString()
+          });
+        }
+      } catch (error) {
+        console.error('Error saving quiz result:', error);
+      }
       setShowResult(true);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          {initializationStatus && (
+            <p className="text-gray-600">{initializationStatus}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -268,27 +155,28 @@ const QuizPage = () => {
           // Quiz Selection Screen
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold mb-2">Financial Independence Quiz</h1>
-              <p className="text-gray-600">Test your knowledge and learn about personal finance</p>
+              <h1 className="text-2xl font-bold mb-2">Knowledge Quiz</h1>
+              <p className="text-gray-600">Select a quiz to test your knowledge</p>
             </div>
 
             <div className="space-y-6">
-              <div className="flex items-start gap-4 p-4 bg-purple-50 rounded-lg">
-                <div className="bg-purple-100 p-3 rounded-lg">
-                  <Award className="h-6 w-6 text-purple-600" />
+              {quizzes.map((quiz, index) => (
+                <div key={index} className="flex items-start gap-4 p-4 bg-purple-50 rounded-lg">
+                  <div className="bg-purple-100 p-3 rounded-lg">
+                    <Award className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">{quiz.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{quiz.description}</p>
+                    <button
+                      onClick={() => handleStartQuiz(quiz)}
+                      className="mt-4 bg-purple-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-purple-700 transition-colors"
+                    >
+                      Start Quiz
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold">Budgeting Basics</h3>
-                  <p className="text-sm text-gray-600 mt-1">Learn the fundamentals of personal budgeting and financial planning</p>
-                </div>
-              </div>
-
-              <button
-                onClick={handleStartQuiz}
-                className="w-full bg-purple-600 text-white rounded-lg py-3 font-medium hover:bg-purple-700 transition-colors"
-              >
-                Start Quiz
-              </button>
+              ))}
             </div>
           </div>
         ) : showResult ? (
