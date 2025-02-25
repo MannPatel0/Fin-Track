@@ -2,6 +2,7 @@
 
 ## Introduction
 Fin Track is a financial tracking application that helps users stay on top of their banking information at a glance. With a physical display showing real-time bank status, balance, transactions, and savings, users can keep their finances always visible. Additionally, the app allows users to set reminders for recurring payments and engage in interactive quizzes to enhance their financial literacy.
+![DemoImage1](Assets/Demo1.jpg)]
 
 ## How to Run
 
