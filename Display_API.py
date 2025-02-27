@@ -87,13 +87,10 @@ class PlaidDataSender:
             print("\nStopped by user")
 
 def main():
-    # Replace with your Plaid access token
     access_token = "access-sandbox-1331c29e-2e5a-492b-ac03-623c4a7aa146"
-    
-    # Create and run the sender
     sender = PlaidDataSender(
         access_token=access_token,
-        serial_port='/dev/tty.usbserial-0001',  # Hardcoded serial port
+        serial_port='/dev/tty.usbserial-0001',
         baud_rate=115200
     )
     
