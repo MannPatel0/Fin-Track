@@ -41,11 +41,10 @@ cd fin-track
    ```
 
 ### 4. Setting Up the Physical Display (Arduino)
-1. Connect your Arduino to your computer.
+1. Connect the Arduino to the computer.
 2. Open `fintrack_display.ino` in Arduino IDE.
 3. Upload the script to the Arduino board.
-4. Ensure the board is communicating properly via serial port.
-5. Run the display API:
+4. Run the display API:
    ```bash
    python3 Display_API.py
    ```
